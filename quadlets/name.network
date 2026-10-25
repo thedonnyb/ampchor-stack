@@ -1,0 +1,53 @@
+# =============================================================
+#
+#  Quadlet network skeleton  —  name.network
+#  Copy this, rename it (e.g. media.network), fill in what you need.
+#
+#  WHAT THIS FILE DOES:
+#  It creates ONE network that containers can share. Any container
+#  that joins it (with Network=media.network in its .container file)
+#  can reach the others BY THEIR CONTAINER NAME — like a phone book.
+#  Example: Sonarr can talk to http://prowlarr:9696 with no IP needed.
+#
+#  Make ONE of these per stack. Not one per app.
+#  Rootless live location:  ~/.config/containers/systemd/
+#  After adding/changing it: systemctl --user daemon-reload
+#
+# =============================================================
+
+
+[Unit]
+# A short label so you know what this network is for when you see it later.
+# Description=Shared network for the arr stack
+
+
+[Network]
+# Leaving this section EMPTY is totally fine — Podman builds a normal,
+# working network with sensible defaults. You only add the lines below
+# if you have a specific reason to. For a home media stack, empty is enough.
+
+# --- the options below are OPTIONAL ---
+
+# Give the network a fixed name instead of an auto-generated one.
+# (Handy if you want it to look tidy in `podman network ls`.)
+# NetworkName=media
+
+# Pick your own IP range for the network instead of letting Podman choose.
+# Only needed if the default range clashes with something on your LAN.
+# Subnet=10.89.0.0/24
+# Gateway=10.89.0.1
+
+# Cut off ALL internet access for containers on this network.
+# WARNING: do NOT use this for the arr stack — the apps need the internet
+# to reach indexers and download metadata. Only for fully offline setups.
+# Internal=true
+
+# Stick a label on the network so you can group/filter it later.
+# Label=project=arr-stack
+
+
+[Install]
+# A network has nothing to "start" on its own, so this usually does nothing.
+# A container that joins the network pulls it up automatically.
+# Left here only as a reference.
+# WantedBy=default.target

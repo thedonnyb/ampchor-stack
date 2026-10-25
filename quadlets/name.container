@@ -1,0 +1,85 @@
+# =============================================================
+#
+#  Quadlet container skeleton  —  <appname>.container
+#  Rootless location:  ~/.config/containers/systemd/
+#  Apply changes:  systemctl --user daemon-reload
+#  Start:          systemctl --user start <appname>
+#
+#  HOW TO USE: copy this file to <appname>.container, then
+#  uncomment and fill in the keys you need. Keys are CamelCase
+#  and values are case-sensitive — match them exactly.
+#
+# =============================================================
+
+
+[Unit]
+# Human-readable label shown in `systemctl status` and the journal.
+# Description=<short description>
+
+# Ordering only ("start after X"); does NOT pull X in.
+# After=network-online.target
+
+# Use together when this container REQUIRES another up first
+# (e.g. an app routed through a VPN container):
+# Requires=<other>.service
+# After=<other>.service
+
+
+[Container]
+# ------ IDENTITY ------
+# Container name. If unset, defaults to systemd-%N.
+# ContainerName=<name>
+
+# Lets `podman auto-update` pull a newer image. Pick ONE:
+#   registry = check remote registry   |   local = only locally built images
+# AutoUpdate=registry
+
+# ------ ENVIRONMENT ------
+# One Environment= per variable. PUID/PGID/TZ are LinuxServer.io conventions.
+# TZ is just an env var — there is no separate Timezone= key.
+# (DO NOT HARDCODE SECRETS — use EnvironmentFile for those.)
+# Environment=PUID=<uid>
+# Environment=PGID=<gid>
+# Environment=TZ=<timezone>
+
+# Load variables (including secrets) from a gitignored file.
+# EnvironmentFile=%h/<app_name>/.env
+
+# ------ IMAGE ------
+# Image to run. Pin a version tag (e.g. :4.0) instead of :latest.
+# Find images with: podman search <name>
+# Image=<registry/owner/image:tag>
+
+# ------ NETWORKING ------
+# Join a user-defined network so containers reach each other BY NAME.
+# The network is created by a SEPARATE <name>.network file — a .container
+# file does not create one. Value is a network NAME, not an IP.
+# Network=<name>.network
+
+# Set this container's hostname (optional).
+# HostName=<custom name>
+
+# Expose a container port to the host for local access.
+# PublishPort=<hostPort:containerPort>
+
+# ------ STORAGE ------
+# Persist data on the host so it survives container recreation.
+# Volume=<HOST-DIR or SOURCE-VOLUME>:<CONTAINER-DIR>[:OPTIONS]
+#   :Z = PRIVATE SELinux label (only this container)  -> per-app config
+#   :z = SHARED  SELinux label (several containers)   -> media + downloads
+#   %h expands to your home directory.
+# Volume=%h/<app_name>/config:/config:Z
+# Volume=%h/<app_name>/data:/data:z
+
+
+[Service]
+# Restart policy for the container.
+# Restart=always
+
+# Grace period for slow first image pulls before systemd marks it failed.
+# TimeoutStartSec=300
+
+
+[Install]
+# Makes `systemctl --user enable` auto-start it at login/boot.
+# WantedBy=default.target
