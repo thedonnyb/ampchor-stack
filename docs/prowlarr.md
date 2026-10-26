@@ -49,7 +49,7 @@ Pinned build version tag to the image section. Applications are constantly updat
 ## ----------- DATA ------------
 Ive chosent to keep the repository data in two seperate locations
 
-The configuration of this container can be found in [prowlerrcontainer](/home/don/Github/ampchor-stack/quadlets/prowlerr.container)
+The configuration of this container can be found in [prowlarrcontainer](/home/don/Github/ampchor-stack/quadlets/prowlarr.container)
 The contents data will be in a seperate folder under primary users home dir
 
 
@@ -58,13 +58,15 @@ Once everything has been set within the container, my next step is to deploy suc
 
 I need to make sure all folders/files are created with the correct ownership folders/files inside recieve the same permissions
 ```bash
-$ mkdir ~/<folder_name>/Prowlarr
-$ chmod 700 ~/<folder_name>/Prowlarr
+$ mkdir ~/<folder_name>/prowlarr
+$ chmod 700 ~/<folder_name>/prowlarr
 ```
 
 Now I need to copy everything ive created into ~/<folder_name>/Prowlarr . This is because our container was created rootless. In order for our application to work, it needs to be in a folder our systemd knows to read so it will start up.
+
 ```bash
 $ cp -r quadlets/. ~/.config/containers/systemd/
+```
 
 Now in order to find the container ive created for myself, I will run this command. Important to note that because this is rootless, we want to make sure the command is run for our user profile only 
 ```bash
@@ -74,3 +76,11 @@ Once the container can be found, I will start the container for my user account
 ```bash
 $ systemctl --user start prowlarr
 ```
+
+# ------- Troubleshoot -------
+tried starting up prowlarr and got error "Job for prowlarr.service failed because the control process exited with error code.
+See "systemctl --user status prowlarr.service" and "journalctl --user -xeu prowlarr.service" for details."
+
+upon checking the systemctl status, it appears service failed with status=125 and an empty journal. Enabled lingering (loginctl enable-linger) so the rootless user manager runs persistently. Still failed — ran the generated podman run command by hand to surface the real error: statfs .../Pirate/prowlarr: no such file or directory. Root cause: the volume path in the unit (prowlarr) didn’t match the actual folder (Prowlarr) — Linux is case-sensitive. Renamed the folder; service came up clean.
+
+Another issue occured once I was able to start the daemon. Upon typing in http://<ip-address>:9696, page was still unable to connect. After checking tailscale address was active and able to be reached,discovered that new publish port was not added to the firewall bypass section
