@@ -14,7 +14,8 @@
 
 [Unit]
 # Human-readable label shown in `systemctl status` and the journal.
-# Description=<short description>
+# Description= Prowlarr is an indexer manager. Responsible for finding the necessary documents and files we want to store.
+
 
 # Ordering only ("start after X"); does NOT pull X in.
 # After=network-online.target
@@ -28,19 +29,22 @@
 [Container]
 # ------ IDENTITY ------
 # Container name. If unset, defaults to systemd-%N.
-# ContainerName=<name>
+ContainerName=prowlarr
+
+# Keep my host user ID inside the container so files stay owned by me (rootless).
+UserNS=keep-id
 
 # Lets `podman auto-update` pull a newer image. Pick ONE:
 #   registry = check remote registry   |   local = only locally built images
-# AutoUpdate=registry
+AutoUpdate=registry
 
 # ------ ENVIRONMENT ------
 # One Environment= per variable. PUID/PGID/TZ are LinuxServer.io conventions.
 # TZ is just an env var — there is no separate Timezone= key.
 # (DO NOT HARDCODE SECRETS — use EnvironmentFile for those.)
-# Environment=PUID=<uid>
-# Environment=PGID=<gid>
-# Environment=TZ=<timezone>
+Environment=PUID=1000
+Environment=PGID=1000
+Environment=TZ=America/Chicago
 
 # Load variables (including secrets) from a gitignored file.
 # EnvironmentFile=%h/<app_name>/.env
@@ -48,23 +52,23 @@
 # ------ IMAGE ------
 # Image to run. Pin a version tag (e.g. :4.0) instead of :latest.
 # Find images with: podman search <name>
-# Image=<registry/owner/image:tag>
+Image=docker.io/linuxserver/prowlarr:2.6.5.5623-ls165
 
 # ------ NETWORKING ------
 # Join a user-defined network so containers reach each other BY NAME.
 # The network is created by a SEPARATE <name>.network file — a .container
 # file does not create one. Value is a network NAME, not an IP.
-# Network=<name>.network
+Network=media.network
 
 # Set this container's hostname (optional).
-# HostName=<custom name>
+HostName=prowlarr
 
 # Expose a container port to the host for local access.
-# PublishPort=<hostPort:containerPort>
+PublishPort=9696:9696
 
 # ------ STORAGE ------
 # Persist data on the host so it survives container recreation.
-# Volume=<HOST-DIR or SOURCE-VOLUME>:<CONTAINER-DIR>[:OPTIONS]
+Volume=%h/Pirate/prowlarr:/config:Z
 #   :Z = PRIVATE SELinux label (only this container)  -> per-app config
 #   :z = SHARED  SELinux label (several containers)   -> media + downloads
 #   %h expands to your home directory.
@@ -74,12 +78,12 @@
 
 [Service]
 # Restart policy for the container.
-# Restart=always
+Restart=always
 
 # Grace period for slow first image pulls before systemd marks it failed.
-# TimeoutStartSec=300
+TimeoutStartSec=300
 
 
 [Install]
 # Makes `systemctl --user enable` auto-start it at login/boot.
-# WantedBy=default.target
+WantedBy=default.target

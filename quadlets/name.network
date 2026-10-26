@@ -30,7 +30,7 @@
 
 # Give the network a fixed name instead of an auto-generated one.
 # (Handy if you want it to look tidy in `podman network ls`.)
-# NetworkName=media
+NetworkName=media
 
 # Pick your own IP range for the network instead of letting Podman choose.
 # Only needed if the default range clashes with something on your LAN.
