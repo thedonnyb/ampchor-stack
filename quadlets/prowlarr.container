@@ -68,7 +68,7 @@ PublishPort=9696:9696
 
 # ------ STORAGE ------
 # Persist data on the host so it survives container recreation.
-Volume=%h/Pirate/prowlarr:/config:Z
+Volume=%h/Pirate/config/prowlarr:/config:Z
 #   :Z = PRIVATE SELinux label (only this container)  -> per-app config
 #   :z = SHARED  SELinux label (several containers)   -> media + downloads
 #   %h expands to your home directory.
