@@ -1,6 +1,7 @@
 # Building Bazarr Container
 
-The first application we are going to install. Prowlarr is an index manager — it manages the search sources (indexers) that the other apps query.
+The application we are going to install is Bazarr. Bazarr gets subtitles for the movies and shows Sonarr/Radarr manage.
+
 
 Before installing, I need to find the image name and necessary variables required to run this container. 
     -Search for the image name
@@ -10,17 +11,18 @@ Before installing, I need to find the image name and necessary variables require
 ```bash
 $ podman search --format "{{.Name}}\t{{.Stars}}\t{{.Official}}" bazarr
 
-$ podman pull docker.io/linuxserver/prowlarr
+$ podman pull docker.io/linuxserver/bazarr
 $ podman inspect bazarr
 ```
 ## ----------- Preset Container Variable -------------
 These are defaults to set for my container
 ```json
     -ExposedPorts: {
-        "9696/tcp": {}
+        "6767/tcp": {}
 }
     -Volume: {
         "/config": {}
+        "/data": {}
 }
     -Environment:{
         **values found in permission section**
@@ -37,7 +39,7 @@ In order to find PGUID & PGID
 ```bash
 $ id [user]
 ```
-Since I set the internal container ownership to my primary user, I want to make sure files created by the container — sitting on the local host — are owned by that same user (matching the PUID/PGID I set). If UserNS isnt set, any files the container creates with a permenant location on local host will be given a random number. Rootless containers do not automatically use the same numbers as their set internal PUID & PGID 
+Since I set the internal container ownership to my primary user, I want to make sure files created by the container — sitting on the local host — are owned by that same user (matching the PUID/PGID I set). If UserNS isnt set, any files the container creates with a permanent location on local host will be given a random number. Rootless containers do not automatically use the same numbers as their set internal PUID & PGID 
     - UserNS=keep-id
 
 ## ------------ Version Installation -----------
@@ -45,43 +47,41 @@ Since I set the internal container ownership to my primary user, I want to make 
 ```bash
 $ podman inspect bazarr | grep 'build_version'
 ```
-Pinned build version tag to the image section. Applications are constantly updating and changing. In order to make sure we dont lose track of anything within our application, I set the image version to keep a constant state 
+Pinned build version tag to the image section. Applications are constantly updating and changing. In order to make sure I dont lose track of anything within our application, I set the image version to keep a constant state 
 
 ## ----------- DATA ------------
-Ive chosent to keep the repository data in two seperate locations
+Ive chosen to keep the repository data in two separate locations
 
-The configuration of this container can be found in [bazarrcontainer](/home/don/Github/ampchor-stack/quadlets/bazarr.container)
-The contents data will be in a seperate folder under primary users home dir
+The configuration of this container can be found in [bazarrcontainer](../quadlets/bazarr.container)
+The contents data will be in a separate folder under primary users home dir
 
 
 # -------- DEPLOYMENT ----------
-Once everything has been set within the container, my next step is to deploy sucessfully
+Once everything has been set within the container, my next step is to deploy successfully
 
-I make sure all folders/files are created with the correct ownership folders/files inside recieve the same permissions
+I make sure all folders/files are created with the correct ownership folders/files inside receive the same permissions
 ```bash
-$ mkdir ~/<folder_name>/prowlarr
-$ chmod 700 ~/<folder_name>/prowlarr
+$ mkdir ~/<folder_name>/bazarr
+$ chmod 700 ~/<folder_name>/bazarr
 ```
 
-Now I need to copy everything ive created into ~/<folder_name>/Prowlarr . This is because our container was created rootless. In order for our application to work, it needs to be in a folder our systemd knows to read so it will start up.
+Now I need to copy everything ive created into ~/.config/container/systemd/bazarr because my container is rootless. Want to make sure systemd is able to read container and start process.
 
 ```bash
-$ cp -r quadlets/. ~/.config/containers/systemd/
+$ cp quadlets/bazarr.container ~/.config/containers/systemd/
 ```
 
-Now in order to find the container ive created for myself, I will run this command. Important to note that because this is rootless, we want to make sure the command is run for our user profile only 
+Since ive added a new daemon to my system, I need to load them in. Want to make sure, because this container is applicable to the current user who made it, the reload applies to the current user only. 
 ```bash
 $ systemctl --user daemon-reload
 ```
-Once the container can be found, I will start the container for my user account
+Starting the container for my user account
 ```bash
 $ systemctl --user start bazarr
 ```
 
-# ------- Troubleshoot -------
-tried starting up prowlarr and got error "Job for prowlarr.service failed because the control process exited with error code.
-See "systemctl --user status bazarr.service" and "journalctl --user -xeu bazarr.service" for details."
+# ---------- Firewall ---------------
+giving port access to communicate with the internet 
 
-upon checking the systemctl status, it appears service failed with status=125 and an empty journal. Enabled lingering (loginctl enable-linger) so the rootless user manager runs persistently. Still failed — ran the generated podman run command by hand to surface the real error: statfs .../Pirate/prowlarr: no such file or directory. Root cause: the volume path in the unit (prowlarr) didn’t match the actual folder (Prowlarr) — Linux is case-sensitive. Renamed the fo
-
-Another issue occured once I was able to start the daemon. Upon typing in http://<ip-address>:9696, page was still unable to connect. After checking tailscale address was active and able to be reached,discovered that new publish port was not added to the firewall bypass section
+```bash
+$ sudo firewall-cmd --add-port=6767/tcp --permanent 
