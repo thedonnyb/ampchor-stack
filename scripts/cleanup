@@ -1,5 +1,5 @@
 #!/bin/bash
 
 # Deletes media files older than 15 days from the library folders.
-find /home/don/Pirate/data/tv/ -type f -mtime +15 -print -delete
-find /home/don/Pirate/data/movies -type f -mtime +15 -print -delete
+find /home/don/<Name>/data/tv/ -type f -mtime +15 -print -delete
+find /home/don/<name>/data/movies -type f -mtime +15 -print -delete
